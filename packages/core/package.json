@@ -1,5 +1,5 @@
 {
-  "name": "@andriikhr/transmart/core",
+  "name": "@andriikhr/transmart-core",
   "version": "0.4.4",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
