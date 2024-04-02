@@ -61,7 +61,8 @@ First, create a transmart.config.js file in the root of your project. or any oth
 module.exports = {
   baseLocale: 'en',
   locales: ['fr', 'jp', 'de'],
-  localePath: 'public/locales',
+  localePath: 'src',
+  targetFoldersName: 'locales',
   openAIApiKey: 'your-own-openai-api-key',
   overrides: {
     'zh-CN': {
