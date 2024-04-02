@@ -1,6 +1,6 @@
 {
   "name": "@andriikhr/transmart",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "description": "Automate your i18n localization with AI",
@@ -25,7 +25,7 @@
     "lint": "eslint --quiet packages --ext .ts",
     "lint:fix": "eslint --quiet --fix packages --ext .ts",
     "bootstrap": "source .env",
-    "release": "npm run clean && npm run build && lerna publish"
+    "release": "npm run clean && npm run build && lerna publish from-git --yes"
   },
   "dependencies": {
     "commander": "^9.4.1",
