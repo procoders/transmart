@@ -1,11 +1,10 @@
 'use strict'
 Object.defineProperty(exports, '__esModule', { value: true })
 exports.run = void 0
-const core_1 = require('@andriikhr/transmart-core-test')
+const core_1 = require('@andriikhr/core-test')
 const fs = require('fs-extra')
 const path = require('path')
 const Spinnies = require('spinnies')
-
 async function run(options) {
   const transmart = new core_1.Transmart(options)
   const spinnerManager = new Spinnies()
