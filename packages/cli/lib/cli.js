@@ -1,7 +1,7 @@
 'use strict'
 Object.defineProperty(exports, '__esModule', { value: true })
 exports.run = void 0
-const core_1 = require('@andriikhr/core-test')
+const core_1 = require('@procoders/transmart-core')
 const fs = require('fs-extra')
 const path = require('path')
 const Spinnies = require('spinnies')
