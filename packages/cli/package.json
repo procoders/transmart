@@ -1,6 +1,6 @@
 {
   "name": "@andriikhr/transmart-cli-test-test",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
@@ -20,7 +20,7 @@
     "build:watch": "npm run clean && tsc -p tsconfig.build.json --watch"
   },
   "dependencies": {
-    "@andriikhr/transmart-core-test-test": "^0.4.3",
+    "@andriikhr/transmart-core-test-test": "^0.4.4",
     "@types/spinnies": "^0.5.0",
     "commander": "^9.4.1",
     "cosmiconfig": "^8.3.6",
@@ -34,5 +34,5 @@
     "@types/node-fetch": "^2.6.2",
     "typescript": "^4.9.5"
   },
-  "gitHead": "5874bd4a021e4b4475ac5830bbe7d01740a087d9"
+  "gitHead": "a95dd1a5e1acd8aedcdc4a63605599c34c0dcc46"
 }
