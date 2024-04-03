@@ -1,5 +1,5 @@
 {
-  "name": "@andriikhr/transmart",
+  "name": "@procoders/transmart",
   "version": "0.0.3",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
@@ -25,7 +25,8 @@
     "lint": "eslint --quiet packages --ext .ts",
     "lint:fix": "eslint --quiet --fix packages --ext .ts",
     "bootstrap": "source .env",
-    "release": "npm run clean && npm run build && lerna version && lerna publish --force-publish=* --no-git-tag-version --yes"
+    "release": "npm run clean && npm run build && lerna version && lerna publish --force-publish=* --no-git-tag-version --yes",
+    "publish": "lerna publish from-git --yes"
   },
   "dependencies": {
     "commander": "^9.4.1",
