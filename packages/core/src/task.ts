@@ -32,20 +32,42 @@ export class Task {
       )
     })
     const results = await Promise.all(p)
-    const namespaceResult = this.pack(results)
+    let namespaceResult = this.pack(results)
     const { overrides } = this.transmart.options
 
     // override with user provided
-    if (overrides && isPlainObject(overrides)) {
-      Object.entries(overrides).forEach(([overrideKey, value]) => {
-        if (overrideKey === locale && isPlainObject(value)) {
-          Object.entries(value).forEach(([overrideNs, overrideValues]) => {
-            if (overrideNs === namespace) {
-              Object.assign(namespaceResult, overrideValues)
-            }
-          })
+    if (overrides) {
+      // Check if overrides exist for the current locale
+      const localeOverrides = overrides[locale];
+      if (localeOverrides) {
+        // Apply overrides for the locale
+        const namespaceOverrides = localeOverrides[namespace];
+        if (namespaceOverrides) {
+          // Merge overrides with existing values
+          namespaceResult = deepMerge(namespaceResult, namespaceOverrides);
+        } else {
+          console.log("No overrides found for namespace:", namespace);
         }
-      })
+      } else {
+        console.log("No overrides found for locale:", locale);
+      }
+    }
+
+    // Function to deeply merge objects
+    function deepMerge(target: any, source: any) {
+      for (const key in source) {
+        if (source.hasOwnProperty(key)) {
+          if (typeof source[key] === 'object' && !Array.isArray(source[key])) {
+            if (!target[key]) {
+              target[key] = {};
+            }
+            deepMerge(target[key], source[key]);
+          } else {
+            target[key] = source[key];
+          }
+        }
+      }
+      return target;
     }
     return JSON.stringify(namespaceResult, null, 2)
   }
