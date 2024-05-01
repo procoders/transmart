@@ -1,8 +1,8 @@
 import { Transmart } from './transmart'
 import { RunWork } from './types'
-import { readFile } from 'node:fs/promises'
+import { readFile } from 'fs/promises' // Changed import path
 import { translate } from './translate'
-import { isPlainObject, splitJSONtoSmallChunks } from './split'
+import { splitJSONtoSmallChunks } from './split'
 import { limit } from './limit'
 import { jsonrepair } from 'jsonrepair'
 
@@ -12,16 +12,22 @@ interface TaskResult {
 }
 
 export class Task {
-  constructor(private transmart: Transmart, private work: RunWork) {}
+  transmart: Transmart
+  work: RunWork
 
-  async start(onProgress: (current: number, total: number) => any) {
+  constructor(transmart: Transmart, work: RunWork) {
+    this.transmart = transmart
+    this.work = work
+  }
+
+  async start(onProgress: (current: number, total: number) => any): Promise<string> {
     const { inputNSFilePath, namespace, locale } = this.work
     const { modelContextLimit, modelContextSplit } = this.transmart.options
-    const content = await readFile(inputNSFilePath, { encoding: 'utf-8' })
-    const chunks = splitJSONtoSmallChunks(JSON.parse(content), { modelContextLimit, modelContextSplit })
-    let count = 0
+    const content: string = await readFile(inputNSFilePath, { encoding: 'utf-8' })
+    const chunks: any[] = splitJSONtoSmallChunks(JSON.parse(content), { modelContextLimit, modelContextSplit })
+    let count: number = 0
 
-    const p = chunks.map((chunk, index) => {
+    const p: Promise<TaskResult>[] = chunks.map((chunk: any, index: number) => {
       return limit(() =>
         (async () => {
           const result = await this.run(JSON.stringify(chunk, null, 2), index)
@@ -31,43 +37,37 @@ export class Task {
         })(),
       )
     })
-    const results = await Promise.all(p)
-    let namespaceResult = this.pack(results)
-    const { overrides } = this.transmart.options
+    const results: TaskResult[] = await Promise.all(p)
+    let namespaceResult: Record<string, any> = this.pack(results)
 
-    // override with user provided
-    if (overrides) {
-      // Check if overrides exist for the current locale
-      const localeOverrides = overrides[locale];
+    const dirPath: string = inputNSFilePath.substring(0, inputNSFilePath.lastIndexOf('/locales/'))
+    const localeOverridesPath: string = `${dirPath}/locales/${locale}/overrides.json`
+    try {
+      const localeOverridesContent: string = await readFile(localeOverridesPath, { encoding: 'utf-8' })
+      const localeOverrides: Record<string, any> = JSON.parse(localeOverridesContent)
       if (localeOverrides) {
-        // Apply overrides for the locale
-        const namespaceOverrides = localeOverrides[namespace];
-        if (namespaceOverrides) {
-          // Merge overrides with existing values
-          namespaceResult = deepMerge(namespaceResult, namespaceOverrides);
-        } else {
-          console.log("No overrides found for namespace:", namespace);
-        }
-      } else {
-        console.log("No overrides found for locale:", locale);
+        namespaceResult = deepMerge(namespaceResult, localeOverrides)
+      }
+    } catch (error: any) {
+      if (error.code !== 'ENOENT') {
+        console.error('Error reading or applying overrides:', error)
       }
     }
 
-    // Function to deeply merge objects
-    function deepMerge(target: any, source: any) {
+    function deepMerge(target: any, source: any): any {
       for (const key in source) {
         if (source.hasOwnProperty(key)) {
           if (typeof source[key] === 'object' && !Array.isArray(source[key])) {
             if (!target[key]) {
-              target[key] = {};
+              target[key] = {}
             }
-            deepMerge(target[key], source[key]);
+            deepMerge(target[key], source[key])
           } else {
-            target[key] = source[key];
+            target[key] = source[key]
           }
         }
       }
-      return target;
+      return target
     }
     return JSON.stringify(namespaceResult, null, 2)
   }
@@ -85,7 +85,7 @@ export class Task {
     } = this.transmart.options
     const { locale } = this.work
 
-    const data = await translate({
+    const data: string = await translate({
       content,
       baseLang: baseLocale,
       targetLang: locale,
@@ -105,20 +105,19 @@ export class Task {
 
   parse(content: string): Record<string, any> {
     try {
-      const parsedJson = JSON.parse(content)
+      const parsedJson: Record<string, any> = JSON.parse(content)
       return parsedJson
     } catch (e) {
-      // try fix using jsonrepair, if it still fails, just raise error
-      const parsedJson = JSON.parse(jsonrepair(content))
+      const parsedJson: Record<string, any> = JSON.parse(jsonrepair(content))
       return parsedJson
     }
   }
 
   pack(result: TaskResult[]): Record<string, any> {
-    const onePiece = result
+    const onePiece: Record<string, any> = result
       .sort((a, b) => a.index - b.index)
       .reduce((prev, next) => {
-        const parsedJson = this.parse(next.content)
+        const parsedJson: Record<string, any> = this.parse(next.content)
         return {
           ...prev,
           ...parsedJson,
