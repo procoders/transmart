@@ -41,7 +41,7 @@ export class Task {
     let namespaceResult: Record<string, any> = this.pack(results)
 
     const dirPath: string = inputNSFilePath.substring(0, inputNSFilePath.lastIndexOf('/locales/'))
-    const localeOverridesPath = `${dirPath}/locales/${locale}/${namespace}.override.json`;
+    const localeOverridesPath = `${dirPath}/locales/${locale}/_${namespace}.override.json`;
     try {
       const localeOverridesContent: string = await readFile(localeOverridesPath, { encoding: 'utf-8' })
       const localeOverrides: Record<string, any> = JSON.parse(localeOverridesContent)
