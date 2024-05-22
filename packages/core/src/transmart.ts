@@ -3,6 +3,7 @@ import * as path from 'path'
 import { TransmartOptions, RunOptions, RunWork, TransmartStats, Stats } from './types'
 import { Task } from './task'
 import { glob } from 'glob'
+import * as readline from 'readline'
 import { getPairHash } from './util'
 import { existsSync } from 'node:fs'
 
@@ -14,26 +15,50 @@ const DEFAULT_PARAMS: Partial<TransmartOptions> = {
   modelContextSplit: 1 / 1,
 }
 
-async function findLocalePaths(srcPath: string, targetFolders: string): Promise<string[]> {
-  const localePaths: string[] = []
+async function promptUser(question: string) {
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
 
-  async function search(dir: string) {
-    const files = await fs.readdir(dir)
-    for (const file of files) {
-      const filePath = path.join(dir, file)
-      const stats = await fs.stat(filePath)
-      if (stats.isDirectory()) {
-        if (file === targetFolders) {
-          localePaths.push(filePath)
-        } else {
-          await search(filePath)
-        }
-      }
+    return new Promise((resolve) => {
+        rl.question(question, (answer) => {
+            rl.close();
+            resolve(answer.trim());
+        });
+    });
+}
+
+async function promptRecursive(): Promise<any> {
+    const userInput = await promptUser('Translate all Nested folders as well ?! 🤔🤔🤔 (true/false): ');
+    if (userInput !== 'true' && userInput !== 'false') {
+        console.log('Invalid input. Please enter "true" or "false".');
+        return promptRecursive();
     }
-  }
+    return userInput === 'true';
+}
 
-  await search(srcPath)
-  return localePaths
+async function findLocalePaths(srcPath: string, targetFolders: any, recursive = false) {
+    const localePaths: string[] = [];
+
+    async function search(dir: any) {
+        const files = await fs.readdir(dir);
+        for (const file of files) {
+            const filePath = path.join(dir, file);
+            const stats = await fs.stat(filePath);
+            if (stats.isDirectory()) {
+                if (file === targetFolders) {
+                    localePaths.push(filePath);
+                }
+                if (recursive) {
+                    await search(filePath); // Recursive call if option is enabled
+                }
+            }
+        }
+    }
+
+    await search(srcPath);
+    return localePaths;
 }
 
 export class Transmart {
@@ -44,19 +69,16 @@ export class Transmart {
 
   public async run(options: RunOptions): Promise<TransmartStats> {
     this.validateParams()
-    const {
-      baseLocale,
-      locales,
-      localePath,
-      cacheEnabled = true,
-      targetFoldersName = 'locales',
-      namespaceGlob = '**/*.json',
-    } = this.options
+    const { baseLocale, locales, cacheEnabled = true, targetFoldersName = 'locales', namespaceGlob = '**/*.json' } = this.options;
+
+    const localePath = await promptUser('Enter the path to the locale directory (e.g., "src/widgets"): ');
+    const recursive = await promptRecursive();
+
     const targetLocales = locales.filter((item) => item !== baseLocale)
     const runworks: RunWork[] = []
-    const localePaths = await findLocalePaths(localePath, targetFoldersName)
+    const localePaths = await findLocalePaths(String(localePath), targetFoldersName, recursive);
     // if cachePath is not provided, use the localePath/.cache as default
-    const cachePath = this.options.cachePath || path.resolve(localePath, '.cache')
+    const cachePath = this.options.cachePath || path.resolve(String(localePath), '.cache')
 
     for (const localePath of localePaths) {
       const baseLocaleFullPath = path.resolve(localePath, baseLocale)
